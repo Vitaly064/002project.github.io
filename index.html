@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор лизинга — ЭкономЛизинг</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+    color: #1a2332;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  header {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: #fff;
+    padding: 24px 32px;
+  }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; opacity: 0.85; font-size: 14px; }
+  .layout { display: grid; grid-template-columns: 380px 1fr; gap: 0; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .form-panel { padding: 24px 28px; border-right: 1px solid #e5e9f0; }
+  .form-panel h2 { font-size: 16px; margin: 0 0 16px; color: #1e3a8a; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 13px; color: #4a5568;
+    margin-bottom: 5px; font-weight: 500;
+  }
+  .field input {
+    width: 100%; padding: 9px 12px; font-size: 14px;
+    border: 1px solid #cbd5e0; border-radius: 6px;
+    transition: border-color 0.15s;
+  }
+  .field input:focus {
+    outline: none; border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  }
+  .field .hint { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
+  .results-panel { padding: 24px 28px; }
+  .results-panel h2 { font-size: 16px; margin: 0 0 16px; color: #1e3a8a; }
+
+  .summary {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px; margin-bottom: 24px;
+  }
+  .card {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .card .label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+  .card .value {
+    font-size: 18px; font-weight: 600; color: #1e3a8a;
+  }
+  .card.accent { background: #eff6ff; border-color: #bfdbfe; }
+  .card.accent .value { color: #2563eb; font-size: 20px; }
+
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  th {
+    background: #f1f5f9; text-align: left; padding: 9px 10px;
+    font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0;
+    position: sticky; top: 0;
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid #eef2f7; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr:last-child { font-weight: 600; background: #f1f5f9; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .scroll { max-height: 480px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .error { color: #dc2626; font-size: 13px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Калькулятор лизинга</h1>
+    <p>Предварительный расчёт лизинговых платежей • ООО «ЭкономЛизинг»</p>
+  </header>
+
+  <div class="layout">
+    <!-- ФОРМА ВВОДА -->
+    <div class="form-panel">
+      <h2>Параметры сделки</h2>
+
+      <div class="field">
+        <label>Предмет лизинга</label>
+        <input type="text" id="itemName" value="Катер" placeholder="Например: Катер">
+      </div>
+
+      <div class="field">
+        <label>Стоимость с НДС, ₽</label>
+        <input type="number" id="cost" value="10000000" min="0" step="100000">
+      </div>
+
+      <div class="field">
+        <label>Ставка НДС, %</label>
+        <input type="number" id="vat" value="22" min="0" max="30" step="1">
+      </div>
+
+      <div class="field">
+        <label>Аванс, % от стоимости</label>
+        <input type="number" id="advance" value="20" min="0" max="90" step="1">
+        <div class="hint">Минимум обычно 10%, максимум 90%</div>
+      </div>
+
+      <div class="field">
+        <label>Срок лизинга, мес.</label>
+        <input type="number" id="term" value="36" min="6" max="120" step="1">
+      </div>
+
+      <div class="field">
+        <label>Ставка финансирования (для вас), % годовых</label>
+        <input type="number" id="rateIn" value="18.9" min="0" max="50" step="0.1">
+        <div class="hint">Из «График!E170»</div>
+      </div>
+
+      <div class="field">
+        <label>Ставка для клиента, % годовых</label>
+        <input type="number" id="rateOut" value="24.72" min="0" max="60" step="0.1">
+        <div class="hint">Из «График!E171» — то, что платит лизингополучатель</div>
+      </div>
+
+      <div class="field">
+        <label>Выкупной платёж (в конце), ₽</label>
+        <input type="number" id="buyout" value="0" min="0" step="1000">
+        <div class="hint">Если 0 — выкуп включён в аннуитет</div>
+      </div>
+
+      <div id="error" class="error"></div>
+    </div>
+
+    <!-- РЕЗУЛЬТАТЫ -->
+    <div class="results-panel">
+      <h2>Результаты расчёта</h2>
+      <div class="summary" id="summary"></div>
+      <div class="scroll">
+        <table id="schedule">
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>Дата</th>
+              <th class="num">Платёж с НДС</th>
+              <th class="num">Тело долга</th>
+              <th class="num">Проценты</th>
+              <th class="num">Остаток долга</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  // ---------- Форматирование ----------
+  const fmtMoney = n => n.toLocaleString('ru-RU', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  }) + ' ₽';
+  const fmtMoneyShort = n => n.toLocaleString('ru-RU', {
+    minimumFractionDigits: 0, maximumFractionDigits: 0
+  }) + ' ₽';
+  const fmtPct = n => n.toFixed(2) + '%';
+  const fmtDate = d => d.toLocaleDateString('ru-RU');
+
+  // ---------- Основной расчёт ----------
+  function calculate() {
+    // Чтение входных данных (аналоги ячеек Excel)
+    const cost     = +$('cost').value;          // График!F4  — стоимость с НДС
+    const vatRate  = +$('vat').value;           // График!H4  — НДС %
+    const advRate  = +$('advance').value / 100; // График!E9  — доля аванса
+    const term     = Math.round(+$('term').value);     // График!E172
+    const rateIn   = +$('rateIn').value / 100;  // График!E170
+    const rateOut  = +$('rateOut').value / 100; // График!E171
+    const buyout   = +$('buyout').value || 0;   // выкупной платёж
+
+    // ---------- Валидация ----------
+    const errs = [];
+    if (!(cost > 0))      errs.push('Стоимость должна быть больше 0.');
+    if (!(term >= 6))     errs.push('Срок — не менее 6 месяцев.');
+    if (advRate < 0 || advRate >= 1) errs.push('Аванс должен быть от 0 до 99%.');
+    if (rateOut < rateIn) errs.push('Ставка для клиента не может быть ниже ставки финансирования.');
+
+    if (errs.length) {
+      $('error').textContent = errs.join(' ');
+      $('summary').innerHTML = '';
+      document.querySelector('#schedule tbody').innerHTML = '';
+      return;
+    }
+    $('error').textContent = '';
+
+    // ---------- Расчёт ----------
+    // Аналог График!F5 — стоимость без НДС
+    const costNet = cost / (1 + vatRate / 100);
+    // Аналог График!F9 — сумма аванса
+    const advance = Math.round(cost * advRate * 100) / 100;
+    // Сумма кредита = стоимость минус аванс (аналог '% и кредит'!J3)
+    const loanAmount = cost - advance - buyout;
+    if (loanAmount <= 0) {
+      $('error').textContent = 'Аванс и выкуп не могут быть больше стоимости.';
+      return;
+    }
+
+    // Аннуитетный платёж (аналог Аннуитет!C9)
+    const i = rateOut / 12;
+    const annuity = i === 0
+      ? loanAmount / term
+      : loanAmount * i / (1 - Math.pow(1 + i, -term));
+
+    // ---------- График платежей ----------
+    const today = new Date();
+    const schedule = [];
+    let balance = loanAmount;
+    let totalPayments = 0;   // всего платежей с НДС (без аванса)
+    let totalInterest = 0;   // проценты клиента с НДС
+
+    for (let m = 1; m <= term; m++) {
+      const interest = balance * i;
+      let principal = annuity - interest;
+
+      // Последний платёж — закрываем остаток
+      if (m === term) principal = balance;
+
+      balance -= principal;
+      if (balance < 0) balance = 0;
+
+      const date = new Date(today.getFullYear(), today.getMonth() + m, today.getDate());
+
+      totalPayments += annuity;
+      totalInterest += interest;
+
+      schedule.push({
+        n: m,
+        date,
+        payment: annuity,
+        principal,
+        interest,
+        balance
+      });
+    }
+
+    // ---------- Итоги ----------
+    const totalContract = advance + totalPayments + buyout; // аналог График!F136
+    // Удорожание в год (аналог График!F144 / F13)
+    const appreciationYear = ((totalContract - cost) / cost) / term * 12 * 100;
+
+    // ---------- Вывод итогов ----------
+    $('summary').innerHTML = `
+      <div class="card">
+        <div class="label">Аванс (${fmtPct(advRate * 100)})</div>
+        <div class="value">${fmtMoneyShort(advance)}</div>
+      </div>
+      <div class="card accent">
+        <div class="label">Ежемесячный платёж с НДС</div>
+        <div class="value">${fmtMoney(annuity)}</div>
+      </div>
+      <div class="card">
+        <div class="label">Сумма договора лизинга</div>
+        <div class="value">${fmtMoneyShort(totalContract)}</div>
+      </div>
+      <div class="card">
+        <div class="label">Удорожание в год</div>
+        <div class="value">${fmtPct(appreciationYear)}</div>
+      </div>
+      <div class="card">
+        <div class="label">Проценты клиента (всего)</div>
+        <div class="value">${fmtMoneyShort(totalInterest)}</div>
+      </div>
+      <div class="card">
+        <div class="label">Выкупной платёж</div>
+        <div class="value">${fmtMoneyShort(buyout)}</div>
+      </div>
+    `;
+
+    // ---------- Вывод графика ----------
+    const tbody = document.querySelector('#schedule tbody');
+    tbody.innerHTML = schedule.map(r => `
+      <tr>
+        <td>${r.n}</td>
+        <td>${fmtDate(r.date)}</td>
+        <td class="num">${fmtMoney(r.payment)}</td>
+        <td class="num">${fmtMoney(r.principal)}</td>
+        <td class="num">${fmtMoney(r.interest)}</td>
+        <td class="num">${fmtMoney(r.balance)}</td>
+      </tr>
+    `).join('');
+
+    // Итоговая строка
+    tbody.innerHTML += `
+      <tr>
+        <td colspan="2">Итого</td>
+        <td class="num">${fmtMoney(totalPayments)}</td>
+        <td class="num">${fmtMoney(loanAmount)}</td>
+        <td class="num">${fmtMoney(totalInterest)}</td>
+        <td></td>
+      </tr>
+    `;
+  }
+
+  // ---------- Привязка событий ----------
+  ['cost','vat','advance','term','rateIn','rateOut','buyout','itemName']
+    .forEach(id => $(id).addEventListener('input', calculate));
+
+  // Первый расчёт при загрузке
+  calculate();
+})();
+</script>
+</body>
+</html>
